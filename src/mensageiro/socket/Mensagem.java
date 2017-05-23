@@ -50,9 +50,10 @@ public class Mensagem implements Serializable{
         PEDIR_TRANSFERENCIA,
         TRANSFERIR,
         REGISTRAR_USUARIO,
-        RESULT_NOVO_USUARIO,
-        ANUNCIAR_NOVO_USUARIO,
-        ANUNCIAR_SAIDA_USUARIO,
+        RESULT_REGISTRAR_USUARIO,
+        LISTA_USUARIOS,
+        ANUNCIAR_LOGIN,
+        ANUNCIAR_LOGOUT,
         TESTE,
     }
     
