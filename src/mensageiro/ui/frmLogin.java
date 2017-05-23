@@ -257,8 +257,27 @@ public class frmLogin extends javax.swing.JFrame {
         this.setVisible(false);
     }
     
-    private void loginConvidado(String usuario) {
-        login(usuario, null);
+    
+    
+    private void definirCallbackLoginOK(ClienteSocket cliente) {
+        cliente.onLoginOK = new Runnable() {
+            @Override
+            public void run() {
+                lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("accept.png")));
+                lblTesteConexao.setText("Sucesso");
+                mostrarChat();
+            }
+        };
+    }
+    
+    private void definirCallbackLoginFalho(ClienteSocket cliente) {
+        cliente.onErroLogin = new Runnable() {
+            @Override
+            public void run() {
+                lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("error.png")));
+                lblTesteConexao.setText("Login falho");
+            }
+        };
     }
     
     private void login(String usuario, char[] senha) {
@@ -269,7 +288,7 @@ public class frmLogin extends javax.swing.JFrame {
             ClienteSocket cliente = new ClienteSocket(serverAddr(), serverPort(), usuario, senha, true);
             lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("accept.png")));
             lblTesteConexao.setText("Sucesso");
-            mostrarChat();
+            //mostrarChat();
         } catch (IOException ex) {
             lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("error.png")));
             lblTesteConexao.setText("Conexão falha");
@@ -278,6 +297,10 @@ public class frmLogin extends javax.swing.JFrame {
         } 
     }
      
+    private void loginConvidado(String usuario) {
+        login(usuario, null);
+    }
+    
     private void btnEntrarConvidadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEntrarConvidadoActionPerformed
         Thread loginConvidado = new Thread(new Runnable() { 
             @Override
