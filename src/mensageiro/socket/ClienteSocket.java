@@ -88,9 +88,9 @@ public class ClienteSocket implements Runnable {
             return (Mensagem) entrada.readObject();
         } catch (IOException ex) {
             executando = false;
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         } catch (ClassNotFoundException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         }
         return null;
     }
@@ -124,16 +124,16 @@ public class ClienteSocket implements Runnable {
                 break;
             case REGISTRAR_USUARIO:
                 break;
-            case RESULT_NOVO_USUARIO:
+            case RESULT_REGISTRAR_USUARIO:
                 break;
-            case ANUNCIAR_NOVO_USUARIO:
+            case ANUNCIAR_LOGIN:
                 break;
-            case ANUNCIAR_SAIDA_USUARIO:
+            case ANUNCIAR_LOGOUT:
                 break;
             case TESTE:
                 break;
             default:
-                LOGGER.log(Level.SEVERE, null, new AssertionError(msg.tipo().name()));
+                LOGGER.severe(new AssertionError(msg.tipo().name()).toString());
         }
     }
     
@@ -154,7 +154,7 @@ public class ClienteSocket implements Runnable {
             saida.flush();
             LOGGER.log(Level.INFO, "Enviado: {0}", msg.toString());
         } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         }
     }
 }
