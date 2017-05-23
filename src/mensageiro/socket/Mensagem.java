@@ -31,23 +31,13 @@ public class Mensagem implements Serializable{
     private static final String OK = "\u0001";
     private static final String FAIL = "\u0000";
     
-    // todo: fazer isso menos verboso
-    public enum Respostas {
-        LOGIN_OK(OK),
-        LOGIN_FAIL(FAIL),
-        TRANSFERENCIA_OK(OK),
-        TRANSFERENCIA_FAIL(FAIL),
-        REGISTRAR_OK(OK),
-        REGISTRAR_FAIL(FAIL);
-
-        private final String text;
-        private Respostas(final String text) {
-            this.text = text;
-        }
-        @Override
-        public String toString() {
-            return text;
-        }
+    public class Resp {
+        public static final String LOGIN_OK = OK;
+        public static final String LOGIN_FAIL = FAIL;
+        public static final String TRANSFERENCIA_OK = OK;
+        public static final String TRANSFERENCIA_FAIL = FAIL;
+        public static final String REGISTRAR_OK = OK;
+        public static final String REGISTRAR_FAIL = FAIL;
     }
     
     public enum Tipos {
