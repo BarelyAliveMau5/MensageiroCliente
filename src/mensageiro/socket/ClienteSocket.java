@@ -31,7 +31,9 @@ import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+/**
+ * @author BarelyAliveMau5
+ */
 public class ClienteSocket implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClienteSocket.class.getName());
     private final String usuario;            // nome do usuario atual
@@ -74,7 +76,7 @@ public class ClienteSocket implements Runnable {
         if (senha != null)
             enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, String.valueOf(senha), ""));
         else
-            enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, "a", "a"));
+            enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, "", ""));
     }
     
     private String formatarMsg(Mensagem msg) {

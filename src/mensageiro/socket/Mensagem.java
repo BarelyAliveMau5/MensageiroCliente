@@ -24,7 +24,9 @@
 package mensageiro.socket;
 
 import java.io.Serializable;
-
+/**
+ * @author BarelyAliveMau5
+ */
 public class Mensagem implements Serializable{
     private static final long serialVersionUID = 1L;
     
