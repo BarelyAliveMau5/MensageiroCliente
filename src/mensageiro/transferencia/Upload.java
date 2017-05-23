@@ -36,6 +36,7 @@ import java.util.logging.Logger;
  * @author BarelyAliveMau5
  */
 public class Upload extends TransferenciaBase {
+    private static final Logger LOGGER = Logger.getLogger(Download.class.getName());
     // todo: testar
     private FileInputStream entrada;
     private OutputStream saida;
@@ -53,7 +54,7 @@ public class Upload extends TransferenciaBase {
             this.tamanhoArquivo = (int) this.entrada.getChannel().size();
         } 
         catch (IOException ex) {
-            Logger.getGlobal().log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         }
     }
         
@@ -70,7 +71,7 @@ public class Upload extends TransferenciaBase {
             if(this.socket != null)
                 this.socket.close();
         } catch (IOException ex) {
-            Logger.getGlobal().log(Level.WARNING, null, ex);
+            LOGGER.warning(ex.toString());
         }
     }
 
@@ -97,7 +98,7 @@ public class Upload extends TransferenciaBase {
         }
         catch (IOException ex) {
             this.status = Upload.INTERROMPIDO;
-            Logger.getGlobal().log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         }
     }
 }

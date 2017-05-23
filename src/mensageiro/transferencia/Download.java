@@ -34,6 +34,7 @@ import java.util.logging.Logger;
  * @author BarelyAliveMau5
  */
 public class Download extends TransferenciaBase {
+    private static final Logger LOGGER = Logger.getLogger(Download.class.getName());
     // todo: testar
     private String salvarEm;
     private int porta;
@@ -52,7 +53,7 @@ public class Download extends TransferenciaBase {
                 iniciar();
         }
         catch (IOException ex) {
-            Logger.getGlobal().log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         }
     }
     
@@ -69,7 +70,7 @@ public class Download extends TransferenciaBase {
             if(socket != null)
                 socket.close();
         } catch (IOException ex) {
-            Logger.getGlobal().log(Level.WARNING, null, ex);
+            LOGGER.warning(ex.toString());
         }
     }
     
@@ -78,7 +79,7 @@ public class Download extends TransferenciaBase {
         try {
             executando = true;
             socket = server.accept();
-            Logger.getGlobal().log(Level.INFO, "Download: {0}", socket.getRemoteSocketAddress());
+            LOGGER.log(Level.INFO, "Download: {0}", socket.getRemoteSocketAddress());
             entrada = socket.getInputStream();
             saida = new FileOutputStream(salvarEm);
             
@@ -102,7 +103,7 @@ public class Download extends TransferenciaBase {
         } 
         catch (IOException ex) {
             status = Download.INTERROMPIDO;
-            Logger.getGlobal().log(Level.SEVERE, null, ex);
+            LOGGER.severe(ex.toString());
         }
         executando = false;
     }

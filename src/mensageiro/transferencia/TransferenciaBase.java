@@ -32,6 +32,7 @@ import java.util.logging.Logger;
  * @author BarelyAliveMau5
  */
 public abstract class TransferenciaBase implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(Download.class.getName());
     // todo: testar
     protected ServerSocket server;
     protected Socket socket;
@@ -68,8 +69,7 @@ public abstract class TransferenciaBase implements Runnable {
         if (executando) {
             executando = false;
         } else {
-            Logger.getGlobal()
-                .log(Level.WARNING, "Tentativa de cancelar transferencia não iniciado");
+            LOGGER.warning("Tentativa de cancelar transferencia não iniciado");
         }
         status = TransferenciaBase.CANCELADO;
     }
@@ -79,8 +79,7 @@ public abstract class TransferenciaBase implements Runnable {
             Thread exec = new Thread(this);
             exec.start();
         } else {
-            Logger.getGlobal()
-                    .log(Level.WARNING, "Aviso: Tentativa de iniciação de transferencia já iniciado");
+            LOGGER.warning("Aviso: Tentativa de iniciação de transferencia já iniciado");
         }
     }
 }
