@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ClienteSocket implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(ClienteSocket.class.getName());
     private final String usuario;            // nome do usuario atual
     private final int porta;                 // porta do server
     private final String serverAddr;         // endereço do server
@@ -77,7 +78,7 @@ public class ClienteSocket implements Runnable {
     }
     
     private String formatarMsg(Mensagem msg) {
-        return Mensagem.Respostas.LOGIN_OK.toString();
+        return Mensagem.Resp.LOGIN_OK;
     }
     
     private Mensagem receber(){
@@ -85,15 +86,15 @@ public class ClienteSocket implements Runnable {
             return (Mensagem) entrada.readObject();
         } catch (IOException ex) {
             executando = false;
-            Logger.getLogger(ClienteSocket.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ClienteSocket.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         return null;
     }
     
     public void resolverLogin(Mensagem msg) {
-        if (msg.conteudo.equals(Mensagem.Respostas.LOGIN_OK.toString()))
+        if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
             mensagens.add("Logado com sucesso");
     }
     
@@ -130,8 +131,7 @@ public class ClienteSocket implements Runnable {
             case TESTE:
                 break;
             default:
-                Logger.getLogger(ClienteSocket.class.getName()).log(Level.SEVERE, null, 
-                                                                    new AssertionError(msg.tipo().name()));
+                LOGGER.log(Level.SEVERE, null, new AssertionError(msg.tipo().name()));
         }
     }
     
@@ -150,9 +150,9 @@ public class ClienteSocket implements Runnable {
             System.out.print(msg);
             saida.writeObject(msg);
             saida.flush();
-            Logger.getLogger(ClienteSocket.class.getName()).log(Level.INFO, "Enviado: {0}", msg.toString());
+            LOGGER.log(Level.INFO, "Enviado: {0}", msg.toString());
         } catch (IOException ex) {
-            Logger.getLogger(ClienteSocket.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 }
