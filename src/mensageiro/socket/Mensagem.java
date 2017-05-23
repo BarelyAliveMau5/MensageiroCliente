@@ -33,24 +33,24 @@ public class Mensagem implements Serializable{
     private static final String OK = "\u0001";
     private static final String FAIL = "\u0000";
     
+    // "resposta", caso não tenha ficado claro o suficiente 
     public class Resp {
         public static final String LOGIN_OK = OK;
-        public static final String LOGIN_FAIL = FAIL;
+        public static final String LOGIN_ESPERANDO = "";
+        public static final String LOGIN_FALHO = FAIL;
         public static final String TRANSFERENCIA_OK = OK;
-        public static final String TRANSFERENCIA_FAIL = FAIL;
+        public static final String TRANSFERENCIA_FALHA = FAIL;
         public static final String REGISTRAR_OK = OK;
-        public static final String REGISTRAR_FAIL = FAIL;
+        public static final String REGISTRAR_FALHA = FAIL;
     }
     
     public enum Tipos {
         MENSAGEM,
         LOGIN,
         LOGOUT,
-        SAIDA,
         PEDIR_TRANSFERENCIA,
-        TRANSFERIR,
+        RESP_TRANSFERENCIA,
         REGISTRAR_USUARIO,
-        RESULT_REGISTRAR_USUARIO,
         LISTA_USUARIOS,
         ANUNCIAR_LOGIN,
         ANUNCIAR_LOGOUT,
