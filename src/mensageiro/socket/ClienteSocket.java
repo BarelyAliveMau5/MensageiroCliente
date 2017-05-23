@@ -44,9 +44,12 @@ public class ClienteSocket implements Runnable {
     private final ObjectOutputStream saida;  // saída dos dados vindos da rede
     private boolean executando;              // condição que mantem o loop que verifica os dados recebidos
     private ArrayDeque<String> mensagens;
+    private ArrayDeque<String> listaUsuarios;
     private final static int TIMEOUT = 5000;
+    public Runnable onLoginOK; // parece gambiarra, mas é a forma de interagir com a interface de forma generica
+    public Runnable onErroLogin;
     
-    /**
+    /** 
      * @param addr endereço do servidor
      * @param porta porta do servidor
      * @param usuario nome que aparecerá em publico
@@ -80,7 +83,64 @@ public class ClienteSocket implements Runnable {
     }
     
     private String formatarMsg(Mensagem msg) {
-        return Mensagem.Resp.LOGIN_OK;
+        if (msg.destinatario.equals(""))
+            return msg.remetente + ": " + msg.conteudo;
+        else if (msg.destinatario.equals(usuario))
+            return msg.remetente + " [privado] : " + msg.conteudo;
+        else
+            LOGGER.warning("Mensagem encaminhada ao destinatario errado");
+            return msg.remetente + " [wtf?] : " + msg.conteudo;
+    }
+    
+    private String formatarMsgAnuncio(Mensagem msg, boolean entrando) {
+        if (entrando) {
+            return msg.remetente + " acabou de entrar.";
+        } else {
+            return msg.remetente + " acabou de sair.";
+        }
+    }
+    
+    public String proximaMsg() {
+        return mensagens.poll();
+    }
+    
+    public void lidarComLogin(Mensagem msg) {
+        try {
+        if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
+            onLoginOK.run();
+        if (msg.conteudo.equals(Mensagem.Resp.LOGIN_FALHO))
+            onErroLogin.run(); 
+        } catch (NullPointerException ex) {
+            // não fazer nada. é responsabilidade de quem usar definir os callbacks
+        }
+    }
+    
+    public void lidarComRespostas(Mensagem msg) {
+        switch (msg.tipo()) {
+            case MENSAGEM:
+                mensagens.addLast(formatarMsg(msg));
+                break;
+            case LOGIN:
+                lidarComLogin(msg);
+                break;
+            case PEDIR_TRANSFERENCIA:
+                break;
+            case RESP_TRANSFERENCIA:
+                break;
+            case REGISTRAR_USUARIO:
+                break;
+            case ANUNCIAR_LOGIN:
+                mensagens.addLast(formatarMsgAnuncio(msg, true));
+                break;
+            case ANUNCIAR_LOGOUT:
+                mensagens.addLast(formatarMsgAnuncio(msg, false));
+                break;
+            case TESTE:
+                break;
+            case LOGOUT:
+            default:
+                LOGGER.severe(new AssertionError(msg.tipo().name()).toString());
+        }
     }
     
     private Mensagem receber(){
@@ -93,48 +153,6 @@ public class ClienteSocket implements Runnable {
             LOGGER.severe(ex.toString());
         }
         return null;
-    }
-    
-    public void resolverLogin(Mensagem msg) {
-        if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
-            mensagens.add("Logado com sucesso");
-    }
-    
-    public String popMsg() {
-        if (!mensagens.isEmpty())
-            return mensagens.pop();
-        else
-            return null;
-    }
-    
-    public void lidarComRespostas(Mensagem msg) {
-        switch (msg.tipo()) {
-            case MENSAGEM:
-                break;
-            case LOGIN:
-                resolverLogin(msg);
-                break;
-            case LOGOUT:
-                break;
-            case SAIDA:
-                break;
-            case PEDIR_TRANSFERENCIA:
-                break;
-            case TRANSFERIR:
-                break;
-            case REGISTRAR_USUARIO:
-                break;
-            case RESULT_REGISTRAR_USUARIO:
-                break;
-            case ANUNCIAR_LOGIN:
-                break;
-            case ANUNCIAR_LOGOUT:
-                break;
-            case TESTE:
-                break;
-            default:
-                LOGGER.severe(new AssertionError(msg.tipo().name()).toString());
-        }
     }
     
     @Override
@@ -152,9 +170,9 @@ public class ClienteSocket implements Runnable {
             System.out.print(msg);
             saida.writeObject(msg);
             saida.flush();
-            LOGGER.log(Level.INFO, "Enviado: {0}", msg.toString());
+            LOGGER.log(Level.FINE, "Enviado: {0}", msg.toString());
         } catch (IOException ex) {
-            LOGGER.severe(ex.toString());
+            LOGGER.warning(ex.toString());
         }
     }
 }
