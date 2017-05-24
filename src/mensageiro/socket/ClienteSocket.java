@@ -48,6 +48,8 @@ public class ClienteSocket implements Runnable {
     private final static int TIMEOUT = 5000;
     public Runnable onLoginOK; // parece gambiarra, mas é a forma de interagir com a interface de forma generica
     public Runnable onErroLogin;
+    public Runnable onNovaMensagem;
+    public Runnable onSolicitTransfer;
     
     /** 
      * @param addr endereço do servidor
@@ -88,7 +90,7 @@ public class ClienteSocket implements Runnable {
         else if (msg.destinatario.equals(usuario))
             return msg.remetente + " [privado] : " + msg.conteudo;
         else
-            LOGGER.warning("Mensagem encaminhada ao destinatario errado");
+            LOGGER.warning("Mensagem encaminhada ao destinatario errado, por algum motivo do além");
             return msg.remetente + " [wtf?] : " + msg.conteudo;
     }
     
@@ -104,7 +106,7 @@ public class ClienteSocket implements Runnable {
         return mensagens.poll();
     }
     
-    public void lidarComLogin(Mensagem msg) {
+    private void lidarComLogin(Mensagem msg) {
         try {
         if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
             onLoginOK.run();
@@ -115,28 +117,42 @@ public class ClienteSocket implements Runnable {
         }
     }
     
+    private void tentarOnSolicitTransfer() {
+        try {
+            onSolicitTransfer.run();
+        } catch (NullPointerException ex) { }
+    }
+    
+    private void tentarOnNovoMensagem() {
+        try {
+            onNovaMensagem.run();
+        } catch (NullPointerException ex) { }
+    }
+    
     public void lidarComRespostas(Mensagem msg) {
         switch (msg.tipo()) {
             case MENSAGEM:
                 mensagens.addLast(formatarMsg(msg));
+                tentarOnNovoMensagem();
                 break;
+            case REGISTRAR_USUARIO:
             case LOGIN:
                 lidarComLogin(msg);
                 break;
             case PEDIR_TRANSFERENCIA:
+                tentarOnSolicitTransfer();
                 break;
             case RESP_TRANSFERENCIA:
                 break;
-            case REGISTRAR_USUARIO:
-                break;
             case ANUNCIAR_LOGIN:
                 mensagens.addLast(formatarMsgAnuncio(msg, true));
+                tentarOnNovoMensagem();
                 break;
             case ANUNCIAR_LOGOUT:
                 mensagens.addLast(formatarMsgAnuncio(msg, false));
+                tentarOnNovoMensagem();
                 break;
             case TESTE:
-                break;
             case LOGOUT:
             default:
                 LOGGER.severe(new AssertionError(msg.tipo().name()).toString());
