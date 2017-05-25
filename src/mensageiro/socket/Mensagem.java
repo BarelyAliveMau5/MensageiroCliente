@@ -76,6 +76,6 @@ public class Mensagem implements Serializable{
         return "{tipo='" + tipo + "'" + 
                 ", remetente='" + remetente + "'" + 
                 ", conteudo='" + conteudo + "'" + 
-                ", destinatario='" + destinatario+"'}";
+                ", destinatario='" + destinatario+"'}\n";
     }
 }

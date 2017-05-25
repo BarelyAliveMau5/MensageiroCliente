@@ -1,3 +1,4 @@
+
 /*
  * The MIT License
  *
@@ -43,7 +44,7 @@ public class ClienteSocket implements Runnable {
     private final ObjectInputStream entrada; // entrada dos dados vindos da rede
     private final ObjectOutputStream saida;  // saída dos dados vindos da rede
     private boolean executando;              // condição que mantem o loop que verifica os dados recebidos
-    private ArrayDeque<String> mensagens;
+    private ArrayDeque<String> mensagens = new ArrayDeque<String>();
     private ArrayDeque<String> listaUsuarios;
     private final static int TIMEOUT = 5000;
     public Runnable onLoginOK; // parece gambiarra, mas é a forma de interagir com a interface de forma generica
@@ -113,8 +114,12 @@ public class ClienteSocket implements Runnable {
         if (msg.conteudo.equals(Mensagem.Resp.LOGIN_FALHO))
             onErroLogin.run(); 
         } catch (NullPointerException ex) {
-            // não fazer nada. é responsabilidade de quem usar definir os callbacks
+            LOGGER.warning("erro em onLoginOK");
         }
+    }
+    
+    public void logOut() {
+        enviar(new Mensagem(Mensagem.Tipos.LOGOUT, "", "", ""));
     }
     
     private void tentarOnSolicitTransfer() {
@@ -130,6 +135,8 @@ public class ClienteSocket implements Runnable {
     }
     
     public void lidarComRespostas(Mensagem msg) {
+        if (msg == null)
+            return;
         switch (msg.tipo()) {
             case MENSAGEM:
                 mensagens.addLast(formatarMsg(msg));
@@ -147,6 +154,8 @@ public class ClienteSocket implements Runnable {
             case ANUNCIAR_LOGIN:
                 mensagens.addLast(formatarMsgAnuncio(msg, true));
                 tentarOnNovoMensagem();
+                break;
+            case LISTA_USUARIOS:
                 break;
             case ANUNCIAR_LOGOUT:
                 mensagens.addLast(formatarMsgAnuncio(msg, false));
@@ -192,3 +201,4 @@ public class ClienteSocket implements Runnable {
         }
     }
 }
+

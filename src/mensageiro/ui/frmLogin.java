@@ -16,6 +16,7 @@ import mensageiro.socket.ClienteSocket;
  * @author user
  */
 public class frmLogin extends javax.swing.JFrame {
+    private ClienteSocket clienteSocket;
     /**
      * Creates new form frmLogin
      */
@@ -241,7 +242,7 @@ public class frmLogin extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     // evita que o usuario dispare varias threads
-    private void setAtoresrsEnabled(boolean estado) {
+    private void setAtoresEnabled(boolean estado) {
         btnEntrarConta.setEnabled(estado);
         btnEntrarConvidado.setEnabled(estado);
         btnTestarConexao.setEnabled(estado);
@@ -252,15 +253,13 @@ public class frmLogin extends javax.swing.JFrame {
     }
     
     private void mostrarChat() {
-        frmChat chat = new frmChat(this);
+        frmChat chat = new frmChat(this, clienteSocket);
         chat.setVisible(true);
         this.setVisible(false);
     }
     
-    
-    
-    private void definirCallbackLoginOK(ClienteSocket cliente) {
-        cliente.onLoginOK = new Runnable() {
+    private void definirCallbackLoginOK() {
+        clienteSocket.onLoginOK = new Runnable() {
             @Override
             public void run() {
                 lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("accept.png")));
@@ -269,15 +268,21 @@ public class frmLogin extends javax.swing.JFrame {
             }
         };
     }
-    
-    private void definirCallbackLoginFalho(ClienteSocket cliente) {
-        cliente.onErroLogin = new Runnable() {
+
+    private void definirCallbackLoginFalho() {
+        clienteSocket.onErroLogin = new Runnable() {
             @Override
             public void run() {
                 lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("error.png")));
                 lblTesteConexao.setText("Login falho");
+                setAtoresEnabled(true);
             }
         };
+    }
+    
+    private void definirCallbacks() {
+        definirCallbackLoginOK();
+        definirCallbackLoginFalho();
     }
     
     private void login(String usuario, char[] senha) {
@@ -285,7 +290,9 @@ public class frmLogin extends javax.swing.JFrame {
             lblTesteConexao.setVisible(true);
             lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("load.gif")));
             lblTesteConexao.setText("Conectando...");
-            ClienteSocket cliente = new ClienteSocket(serverAddr(), serverPort(), usuario, senha, true);
+            clienteSocket = new ClienteSocket(serverAddr(), serverPort(), usuario, senha, true);
+            definirCallbacks(); 
+            clienteSocket.run();
             lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("accept.png")));
             lblTesteConexao.setText("Sucesso");
             //mostrarChat();
@@ -306,10 +313,10 @@ public class frmLogin extends javax.swing.JFrame {
             @Override
             public void run() {
                 loginConvidado(txtApelido.getText());
-                setAtoresrsEnabled(true);
+                setAtoresEnabled(true);
             }
         });
-        setAtoresrsEnabled(false);
+        setAtoresEnabled(false);
         loginConvidado.start();
     }//GEN-LAST:event_btnEntrarConvidadoActionPerformed
 
@@ -318,10 +325,10 @@ public class frmLogin extends javax.swing.JFrame {
             @Override
             public void run() {
                 login(txtUsuario.getText(), txtSenha.getPassword());
-                setAtoresrsEnabled(true);
+                setAtoresEnabled(true);
             }
         });
-        setAtoresrsEnabled(false);
+        setAtoresEnabled(false);
         ContaConvidado.start();
     }//GEN-LAST:event_btnEntrarContaActionPerformed
 
@@ -355,7 +362,7 @@ public class frmLogin extends javax.swing.JFrame {
         Thread testeConexao = new Thread(new Runnable() {
             @Override
             public void run() {
-                setAtoresrsEnabled(false);
+                setAtoresEnabled(false);
                 lblTesteConexao.setVisible(true);
                 lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("load.gif")));
                 lblTesteConexao.setText("Testando conexão... ");
@@ -368,7 +375,7 @@ public class frmLogin extends javax.swing.JFrame {
                     lblTesteConexao.setText("Conexão falha");
                     Logger.getGlobal().log(Level.INFO, ex.toString());
                 } 
-                setAtoresrsEnabled(true);
+                setAtoresEnabled(true);
             }
         });
         testeConexao.start();

@@ -25,12 +25,13 @@ package mensageiro.ui;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
+import mensageiro.socket.ClienteSocket;
 /**
  *
  * @author user
  */
 public final class frmChat extends JFrame {
-
+    private ClienteSocket clienteSocket;  // isso quebra a programação funcional por permitir muitos estados
     private DefaultListModel model;
     private JFrame janelaAnterior;
     /**
@@ -41,8 +42,9 @@ public final class frmChat extends JFrame {
         janelaAnterior = prev;
     }
  
-    public frmChat(JFrame prev) {
+    public frmChat(JFrame prev, ClienteSocket cliente) {
         this();
+        this.clienteSocket = cliente;
         setJanelaAnterior(prev);
     }
     
@@ -53,6 +55,7 @@ public final class frmChat extends JFrame {
     }
     
     public void logoff() {
+        clienteSocket.logOut();
         janelaAnterior.setVisible(true);
         this.dispose();
     }
