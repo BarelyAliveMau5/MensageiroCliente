@@ -44,13 +44,16 @@ public class ClienteSocket implements Runnable {
     private final ObjectInputStream entrada; // entrada dos dados vindos da rede
     private final ObjectOutputStream saida;  // saída dos dados vindos da rede
     private boolean executando;              // condição que mantem o loop que verifica os dados recebidos
-    private ArrayDeque<String> mensagens = new ArrayDeque<String>();
-    private ArrayDeque<String> listaUsuarios;
+    private final ArrayDeque<String> mensagens = new ArrayDeque<String>();
+    private final ArrayDeque<String> listaUsuarios = new ArrayDeque<String>();;
     private final static int TIMEOUT = 5000;
     public Runnable onLoginOK; // parece gambiarra, mas é a forma de interagir com a interface de forma generica
     public Runnable onErroLogin;
     public Runnable onNovaMensagem;
     public Runnable onSolicitTransfer;
+    public Runnable onListaUsuarios;
+    public Runnable onUsuarioEntrou;
+    public Runnable onUsuarioSaiu;
     
     /** 
      * @param addr endereço do servidor
@@ -107,6 +110,10 @@ public class ClienteSocket implements Runnable {
         return mensagens.poll();
     }
     
+    public synchronized String proxItemListaUsuario() {
+        return listaUsuarios.poll();
+    }
+    
     private void lidarComLogin(Mensagem msg) {
         try {
         if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
@@ -114,7 +121,16 @@ public class ClienteSocket implements Runnable {
         if (msg.conteudo.equals(Mensagem.Resp.LOGIN_FALHO))
             onErroLogin.run(); 
         } catch (NullPointerException ex) {
-            LOGGER.warning("erro em onLoginOK");
+            LOGGER.info("evento onLoginOK não definido");
+        }
+    }
+    
+    private void tentarOnListaUsuarios() {
+        try {
+            onListaUsuarios.run();
+            
+        } catch (NullPointerException ex) {
+            LOGGER.info("evento onListaUsuarios não definido");
         }
     }
     
@@ -125,13 +141,21 @@ public class ClienteSocket implements Runnable {
     private void tentarOnSolicitTransfer() {
         try {
             onSolicitTransfer.run();
-        } catch (NullPointerException ex) { }
+        } catch (NullPointerException ex) { 
+            LOGGER.info("evento onSolicitTransfer não definido");
+        }
     }
     
     private void tentarOnNovoMensagem() {
         try {
             onNovaMensagem.run();
-        } catch (NullPointerException ex) { }
+        } catch (NullPointerException ex) { 
+            LOGGER.info("evento onNovaMensagem não definido");
+        }
+    }
+    
+    private synchronized void lidarListaUsuarios(Mensagem msg) {
+        listaUsuarios.addLast(msg.conteudo);
     }
     
     public void lidarComRespostas(Mensagem msg) {
@@ -156,6 +180,10 @@ public class ClienteSocket implements Runnable {
                 tentarOnNovoMensagem();
                 break;
             case LISTA_USUARIOS:
+                lidarListaUsuarios(msg);
+                break;
+            case FIM_LISTA_USUARIOS:
+                tentarOnListaUsuarios();
                 break;
             case ANUNCIAR_LOGOUT:
                 mensagens.addLast(formatarMsgAnuncio(msg, false));

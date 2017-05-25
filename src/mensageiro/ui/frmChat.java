@@ -45,6 +45,7 @@ public final class frmChat extends JFrame {
     public frmChat(JFrame prev, ClienteSocket cliente) {
         this();
         this.clienteSocket = cliente;
+        definirCallbackListaUsuarios();
         setJanelaAnterior(prev);
     }
     
@@ -53,11 +54,34 @@ public final class frmChat extends JFrame {
         this.setLocationRelativeTo(null);  // centralizar janela
         panelTransferencia.setVisible(false);
     }
+        
+    private void setNumeroPessoas(int num) {
+        lblPessoas.setText(String.valueOf(num));
+    }
     
-    public void logoff() {
+    private void definirCallbackListaUsuarios() {
+        clienteSocket.onListaUsuarios = new Runnable() {
+            @Override
+            public void run() {
+                String item;
+                do {
+                    item = clienteSocket.proxItemListaUsuario();
+                    if (item != null)
+                        model.addElement(item);
+                } while (item != null);
+                setNumeroPessoas(model.size());
+            }
+        };
+    }
+
+    private void logoff() {
         clienteSocket.logOut();
         janelaAnterior.setVisible(true);
         this.dispose();
+    }
+    
+    private void enviarMensagem() {
+        
     }
     
     /**
@@ -71,26 +95,26 @@ public final class frmChat extends JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        txtMensagens = new javax.swing.JTextArea();
+        lbl_mensagens = new javax.swing.JLabel();
+        lblMensagens = new javax.swing.JLabel();
+        btnTransferir = new javax.swing.JButton();
+        btnLogout = new javax.swing.JButton();
+        btnLimpar = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         lstUsuarios = new javax.swing.JList();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        lblPessoas = new javax.swing.JLabel();
+        lbl_pessoas = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        txtMensagem = new javax.swing.JTextField();
+        btnEnviar = new javax.swing.JButton();
+        lblNome = new javax.swing.JLabel();
         panelTransferencia = new javax.swing.JPanel();
-        jLabel6 = new javax.swing.JLabel();
-        jProgressBar1 = new javax.swing.JProgressBar();
-        jButton3 = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
+        lbl_transferindo = new javax.swing.JLabel();
+        pbProgresso = new javax.swing.JProgressBar();
+        btnPararTransf = new javax.swing.JButton();
+        lblProgresso = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Chat - Mensageiro");
@@ -100,10 +124,10 @@ public final class frmChat extends JFrame {
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setLineWrap(true);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        txtMensagens.setColumns(20);
+        txtMensagens.setLineWrap(true);
+        txtMensagens.setRows(5);
+        jScrollPane1.setViewportView(txtMensagens);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -118,15 +142,15 @@ public final class frmChat extends JFrame {
         gridBagConstraints.insets = new java.awt.Insets(6, 12, 6, 6);
         jPanel1.add(jScrollPane1, gridBagConstraints);
 
-        jLabel1.setText("Mensagens:");
+        lbl_mensagens.setText("Mensagens:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(6, 12, 6, 6);
-        jPanel1.add(jLabel1, gridBagConstraints);
+        jPanel1.add(lbl_mensagens, gridBagConstraints);
 
-        jLabel2.setText("0");
+        lblMensagens.setText("0");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -135,27 +159,27 @@ public final class frmChat extends JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(6, 12, 6, 6);
-        jPanel1.add(jLabel2, gridBagConstraints);
+        jPanel1.add(lblMensagens, gridBagConstraints);
 
-        jButton4.setText("Transferências");
+        btnTransferir.setText("Transferir arquivo");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 0, 6);
-        jPanel1.add(jButton4, gridBagConstraints);
+        jPanel1.add(btnTransferir, gridBagConstraints);
 
-        jButton5.setText("Logout");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        btnLogout.setText("Logout");
+        btnLogout.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                btnLogoutActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 0, 6);
-        jPanel1.add(jButton5, gridBagConstraints);
+        jPanel1.add(btnLogout, gridBagConstraints);
 
-        jButton6.setText("Limpar");
+        btnLimpar.setText("Limpar");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 0, 6);
-        jPanel1.add(jButton6, gridBagConstraints);
+        jPanel1.add(btnLimpar, gridBagConstraints);
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
@@ -175,7 +199,7 @@ public final class frmChat extends JFrame {
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 6, 12);
         jPanel2.add(jScrollPane2, gridBagConstraints);
 
-        jLabel3.setText("0");
+        lblPessoas.setText("0");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -183,27 +207,27 @@ public final class frmChat extends JFrame {
         gridBagConstraints.ipadx = 20;
         gridBagConstraints.ipady = 6;
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 6, 12);
-        jPanel2.add(jLabel3, gridBagConstraints);
+        jPanel2.add(lblPessoas, gridBagConstraints);
 
-        jLabel4.setText("Pessoas:");
+        lbl_pessoas.setText("Pessoas:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.ipady = 6;
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 6, 0);
-        jPanel2.add(jLabel4, gridBagConstraints);
+        jPanel2.add(lbl_pessoas, gridBagConstraints);
 
-        jTextField1.setText("jTextField1");
+        txtMensagem.setText("jTextField1");
 
-        jButton1.setText("Enviar");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnEnviar.setText("Enviar");
+        btnEnviar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnEnviarActionPerformed(evt);
             }
         });
 
-        jLabel5.setText("Usuario:");
+        lblNome.setText("Usuario:");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -211,11 +235,11 @@ public final class frmChat extends JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel5)
+                .addComponent(lblNome)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1)
+                .addComponent(txtMensagem)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEnviar, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -223,19 +247,19 @@ public final class frmChat extends JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnEnviar)
+                    .addComponent(txtMensagem, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblNome, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         panelTransferencia.setPreferredSize(new java.awt.Dimension(100, 49));
 
-        jLabel6.setText("Transferindo:");
+        lbl_transferindo.setText("Transferindo:");
 
-        jButton3.setText("Parar");
+        btnPararTransf.setText("Parar");
 
-        jLabel7.setText("0/0 kb [0%]");
+        lblProgresso.setText("0/0 kb [0%]");
 
         javax.swing.GroupLayout panelTransferenciaLayout = new javax.swing.GroupLayout(panelTransferencia);
         panelTransferencia.setLayout(panelTransferenciaLayout);
@@ -243,13 +267,13 @@ public final class frmChat extends JFrame {
             panelTransferenciaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelTransferenciaLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel6)
+                .addComponent(lbl_transferindo)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(pbProgresso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel7)
+                .addComponent(lblProgresso)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3)
+                .addComponent(btnPararTransf)
                 .addContainerGap())
         );
         panelTransferenciaLayout.setVerticalGroup(
@@ -257,13 +281,13 @@ public final class frmChat extends JFrame {
             .addGroup(panelTransferenciaLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panelTransferenciaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pbProgresso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(panelTransferenciaLayout.createSequentialGroup()
                         .addGroup(panelTransferenciaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(btnPararTransf, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblProgresso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(0, 6, Short.MAX_VALUE))
-                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lbl_transferindo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -293,36 +317,36 @@ public final class frmChat extends JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+    private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         logoff();
-    }//GEN-LAST:event_jButton5ActionPerformed
+    }//GEN-LAST:event_btnLogoutActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
         panelTransferencia.setVisible(false);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnEnviarActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
+    private javax.swing.JButton btnEnviar;
+    private javax.swing.JButton btnLimpar;
+    private javax.swing.JButton btnLogout;
+    private javax.swing.JButton btnPararTransf;
+    private javax.swing.JButton btnTransferir;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JLabel lblMensagens;
+    private javax.swing.JLabel lblNome;
+    private javax.swing.JLabel lblPessoas;
+    private javax.swing.JLabel lblProgresso;
+    private javax.swing.JLabel lbl_mensagens;
+    private javax.swing.JLabel lbl_pessoas;
+    private javax.swing.JLabel lbl_transferindo;
     public javax.swing.JList lstUsuarios;
     private javax.swing.JPanel panelTransferencia;
+    private javax.swing.JProgressBar pbProgresso;
+    private javax.swing.JTextField txtMensagem;
+    private javax.swing.JTextArea txtMensagens;
     // End of variables declaration//GEN-END:variables
 }
