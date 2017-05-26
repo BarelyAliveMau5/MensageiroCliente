@@ -47,7 +47,8 @@ public class ClienteSocket implements Runnable {
     private final ArrayDeque<String> mensagens = new ArrayDeque<String>();
     private final ArrayDeque<String> listaUsuarios = new ArrayDeque<String>();;
     private final static int TIMEOUT = 5000;
-    public Runnable onLoginOK; // parece gambiarra, mas é a forma de interagir com a interface de forma generica
+    // esses callbacks possibilitam o reuso desse codigo, não dependendo daquela interface de ususario
+    public Runnable onLoginOK;
     public Runnable onErroLogin;
     public Runnable onNovaMensagem;
     public Runnable onSolicitTransfer;
@@ -88,6 +89,10 @@ public class ClienteSocket implements Runnable {
             enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, "", ""));
     }
     
+    public String usuario(){
+        return usuario;
+    }
+    
     private String formatarMsg(Mensagem msg) {
         if (msg.destinatario.equals(""))
             return msg.remetente + ": " + msg.conteudo;
@@ -110,7 +115,7 @@ public class ClienteSocket implements Runnable {
         return mensagens.poll();
     }
     
-    public synchronized String proxItemListaUsuario() {
+    public String proxItemListaUsuario() {
         return listaUsuarios.poll();
     }
     
@@ -138,22 +143,14 @@ public class ClienteSocket implements Runnable {
         enviar(new Mensagem(Mensagem.Tipos.LOGOUT, "", "", ""));
     }
     
-    private void tentarOnSolicitTransfer() {
+    private void tentarCallback(Runnable callback) {
         try {
-            onSolicitTransfer.run();
+            callback.run();
         } catch (NullPointerException ex) { 
-            LOGGER.info("evento onSolicitTransfer não definido");
+            LOGGER.log(Level.INFO, "evento {0} não definido", callback.toString());
         }
     }
-    
-    private void tentarOnNovoMensagem() {
-        try {
-            onNovaMensagem.run();
-        } catch (NullPointerException ex) { 
-            LOGGER.info("evento onNovaMensagem não definido");
-        }
-    }
-    
+  
     private synchronized void lidarListaUsuarios(Mensagem msg) {
         listaUsuarios.addLast(msg.conteudo);
     }
@@ -164,31 +161,31 @@ public class ClienteSocket implements Runnable {
         switch (msg.tipo()) {
             case MENSAGEM:
                 mensagens.addLast(formatarMsg(msg));
-                tentarOnNovoMensagem();
+                tentarCallback(onNovaMensagem);
                 break;
-            case REGISTRAR_USUARIO:
             case LOGIN:
                 lidarComLogin(msg);
                 break;
             case PEDIR_TRANSFERENCIA:
-                tentarOnSolicitTransfer();
+                tentarCallback(onSolicitTransfer);
                 break;
             case RESP_TRANSFERENCIA:
                 break;
             case ANUNCIAR_LOGIN:
                 mensagens.addLast(formatarMsgAnuncio(msg, true));
-                tentarOnNovoMensagem();
+                tentarCallback(onNovaMensagem);
                 break;
             case LISTA_USUARIOS:
                 lidarListaUsuarios(msg);
                 break;
             case FIM_LISTA_USUARIOS:
-                tentarOnListaUsuarios();
+                tentarCallback(onListaUsuarios);
                 break;
             case ANUNCIAR_LOGOUT:
                 mensagens.addLast(formatarMsgAnuncio(msg, false));
-                tentarOnNovoMensagem();
+                tentarCallback(onNovaMensagem);
                 break;
+            case REGISTRAR_USUARIO:
             case TESTE:
             case LOGOUT:
             default:

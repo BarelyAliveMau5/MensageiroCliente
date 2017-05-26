@@ -26,6 +26,7 @@ package mensageiro.ui;
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import mensageiro.socket.ClienteSocket;
+import mensageiro.socket.Mensagem;
 /**
  *
  * @author user
@@ -46,6 +47,7 @@ public final class frmChat extends JFrame {
         this();
         this.clienteSocket = cliente;
         definirCallbackListaUsuarios();
+        definirCallbackNovaMensagem();
         setJanelaAnterior(prev);
     }
     
@@ -57,6 +59,10 @@ public final class frmChat extends JFrame {
         
     private void setNumeroPessoas(int num) {
         lblPessoas.setText(String.valueOf(num));
+    }
+    
+    private void setNumeroMensagens(int num) {
+        lblMensagens.setText(String.valueOf(num));
     }
     
     private void definirCallbackListaUsuarios() {
@@ -73,15 +79,35 @@ public final class frmChat extends JFrame {
             }
         };
     }
-
+    
+    private void definirCallbackNovaMensagem() {
+        clienteSocket.onNovaMensagem = new Runnable() {
+            @Override
+            public void run() {
+                String msg;
+                do {
+                    msg = clienteSocket.proximaMsg();
+                    if (msg != null)
+                        txtMensagens.append(msg + "\n");
+                } while (msg != null);
+                setNumeroMensagens(txtMensagens.getText().split("\n").length);
+            }
+        };
+    }
+    
+    private void enviarMensagem(String msg) {
+        String destinatario;
+        if (lstUsuarios.getSelectedValue() != null)
+            destinatario = lstUsuarios.getSelectedValue().toString();
+        else
+            destinatario = "";
+        clienteSocket.enviar(new Mensagem(Mensagem.Tipos.MENSAGEM, clienteSocket.usuario(), msg, destinatario));
+    }
+    
     private void logoff() {
         clienteSocket.logOut();
         janelaAnterior.setVisible(true);
         this.dispose();
-    }
-    
-    private void enviarMensagem() {
-        
     }
     
     /**
@@ -127,6 +153,11 @@ public final class frmChat extends JFrame {
         txtMensagens.setColumns(20);
         txtMensagens.setLineWrap(true);
         txtMensagens.setRows(5);
+        txtMensagens.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                txtMensagensMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(txtMensagens);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -218,7 +249,11 @@ public final class frmChat extends JFrame {
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 6, 0);
         jPanel2.add(lbl_pessoas, gridBagConstraints);
 
-        txtMensagem.setText("jTextField1");
+        txtMensagem.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtMensagemKeyPressed(evt);
+            }
+        });
 
         btnEnviar.setText("Enviar");
         btnEnviar.addActionListener(new java.awt.event.ActionListener() {
@@ -322,8 +357,17 @@ public final class frmChat extends JFrame {
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
-        panelTransferencia.setVisible(false);
+        enviarMensagem(txtMensagem.getText());
     }//GEN-LAST:event_btnEnviarActionPerformed
+
+    private void txtMensagemKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtMensagemKeyPressed
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER)
+            enviarMensagem(txtMensagem.getText());
+    }//GEN-LAST:event_txtMensagemKeyPressed
+
+    private void txtMensagensMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtMensagensMouseClicked
+        lstUsuarios.clearSelection();
+    }//GEN-LAST:event_txtMensagensMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;
