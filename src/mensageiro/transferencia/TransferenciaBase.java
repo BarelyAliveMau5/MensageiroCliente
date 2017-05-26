@@ -25,7 +25,6 @@ package mensageiro.transferencia;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -46,7 +45,7 @@ public abstract class TransferenciaBase implements Runnable {
                   tamanhoBuffer;
  
     public TransferenciaBase() {
-        tamanhoBuffer = 1024; // 1kb
+        tamanhoBuffer = 4096; // 4kb
         bytesTransferidos = 0;
     }
     
