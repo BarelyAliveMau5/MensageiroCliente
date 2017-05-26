@@ -25,6 +25,7 @@ package mensageiro.ui;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import mensageiro.socket.ClienteSocket;
 import mensageiro.socket.Mensagem;
 
@@ -51,6 +52,7 @@ public final class frmChat extends JFrame {
         definirCallbackNovaMensagem();
         definirCallbackUsuarioEntrou();
         definirCallbackUsuarioSaiu();
+        definirCallbackErroConexao();
         lblNome.setText(clienteSocket.usuario() + ":");
         setJanelaAnterior(prev);
     }
@@ -120,19 +122,39 @@ public final class frmChat extends JFrame {
         };
     }
     
+               
+    private void definirCallbackErroConexao() {
+        clienteSocket.onErroConexao = new Runnable() {
+            @Override
+            public void run() {
+                JOptionPane.showMessageDialog(null, "Houve um problema na conexão, faça o login novamente", 
+                        "Erro", JOptionPane.ERROR_MESSAGE);
+                voltarTelaLogin();
+            }
+        };
+    }
+    
     private void enviarMensagem(String msg) {
         String destinatario;
-        if (lstUsuarios.getSelectedValue() != null)
-            destinatario = lstUsuarios.getSelectedValue().toString();
-        else
+        // não permitir envio de mensagem privada a si mesmo
+        destinatario = lstUsuarios.getSelectedValue() != null ? lstUsuarios.getSelectedValue().toString() : "";
+        if (destinatario.equals(clienteSocket.usuario()))
             destinatario = "";
+        else
+            // outra gambiarra, isso só é enviado, não recebido, porisso tenho que adicionar manualmente a msg
+            if (!destinatario.equals(""))
+                txtMensagens.append(clienteSocket.usuario() + ">" + destinatario + ": "+ msg + "\n"); 
         clienteSocket.enviar(new Mensagem(Mensagem.Tipos.MENSAGEM, clienteSocket.usuario(), msg, destinatario));
+    }
+    
+    private void voltarTelaLogin() {
+        janelaAnterior.setVisible(true);
+        this.dispose();
     }
     
     private void logoff() {
         clienteSocket.logOut();
-        janelaAnterior.setVisible(true);
-        this.dispose();
+        voltarTelaLogin();
     }
     
     /**

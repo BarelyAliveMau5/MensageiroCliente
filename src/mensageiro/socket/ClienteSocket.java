@@ -56,6 +56,7 @@ public class ClienteSocket implements Runnable {
     public Runnable onListaUsuarios;
     public Runnable onUsuarioEntrou;
     public Runnable onUsuarioSaiu;
+    public Runnable onErroConexao;
     
     /** 
      * @param addr endereço do servidor
@@ -100,7 +101,7 @@ public class ClienteSocket implements Runnable {
         else if (msg.destinatario.equals(usuario))
             return msg.remetente + " [privado] : " + msg.conteudo;
         else
-            LOGGER.warning("Mensagem encaminhada ao destinatario errado, por algum motivo do além");
+            LOGGER.warning("Mensagem encaminhada ao destinatario errado");
             return msg.remetente + " [wtf?] : " + msg.conteudo;
     }
     
@@ -221,6 +222,8 @@ public class ClienteSocket implements Runnable {
             LOGGER.log(Level.FINE, "Enviado: {0}", msg.toString());
         } catch (IOException ex) {
             LOGGER.warning(ex.toString());
+            if(ex.getClass().toString().equals("java.net.SocketException"));
+                tentarCallback(onErroConexao);
         }
     }
 }

@@ -100,6 +100,11 @@ public class frmLogin extends javax.swing.JFrame {
 
         txtApelido.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         txtApelido.setText("teste");
+        txtApelido.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtApelidoKeyPressed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -398,6 +403,13 @@ public class frmLogin extends javax.swing.JFrame {
         });
         testeConexao.start();
     }//GEN-LAST:event_btnTestarConexaoActionPerformed
+
+    private void txtApelidoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtApelidoKeyPressed
+        // mais uma pequena gambiarra
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+            btnEntrarConvidadoActionPerformed( new java.awt.event.ActionEvent((Object) evt, 1, "none"));
+        }
+    }//GEN-LAST:event_txtApelidoKeyPressed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEntrarConta;
