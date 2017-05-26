@@ -27,9 +27,10 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import mensageiro.socket.ClienteSocket;
 import mensageiro.socket.Mensagem;
+
 /**
- *
  * @author user
+ * o código está mal estruturado aqui pois tive que me apressar em 200% o tempo de desenvolvimento, perdão
  */
 public final class frmChat extends JFrame {
     private ClienteSocket clienteSocket;  // isso quebra a programação funcional por permitir muitos estados
@@ -48,6 +49,9 @@ public final class frmChat extends JFrame {
         this.clienteSocket = cliente;
         definirCallbackListaUsuarios();
         definirCallbackNovaMensagem();
+        definirCallbackUsuarioEntrou();
+        definirCallbackUsuarioSaiu();
+        lblNome.setText(clienteSocket.usuario() + ":");
         setJanelaAnterior(prev);
     }
     
@@ -72,7 +76,7 @@ public final class frmChat extends JFrame {
                 String item;
                 do {
                     item = clienteSocket.proxItemListaUsuario();
-                    if (item != null)
+                    if (item != null && !item.equals(clienteSocket.usuario()))
                         model.addElement(item);
                 } while (item != null);
                 setNumeroPessoas(model.size());
@@ -91,6 +95,27 @@ public final class frmChat extends JFrame {
                         txtMensagens.append(msg + "\n");
                 } while (msg != null);
                 setNumeroMensagens(txtMensagens.getText().split("\n").length);
+            }
+        };
+    }
+        
+    private void definirCallbackUsuarioEntrou() {
+        clienteSocket.onUsuarioEntrou = new Runnable() {
+            @Override
+            public void run() {
+                model.addElement(clienteSocket.ultimoUsuarioEntrado());
+                setNumeroPessoas(model.size());
+            }
+        };
+    }
+    
+           
+    private void definirCallbackUsuarioSaiu() {
+        clienteSocket.onUsuarioSaiu = new Runnable() {
+            @Override
+            public void run() {
+                model.removeElement(clienteSocket.ultimoUsuarioEntrado());
+                setNumeroPessoas(model.size());
             }
         };
     }
