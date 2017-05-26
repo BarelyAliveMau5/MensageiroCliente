@@ -46,6 +46,7 @@ public class ClienteSocket implements Runnable {
     private boolean executando;              // condição que mantem o loop que verifica os dados recebidos
     private final ArrayDeque<String> mensagens = new ArrayDeque<String>();
     private final ArrayDeque<String> listaUsuarios = new ArrayDeque<String>();;
+    private String ultimoUsuarioEntrado;
     private final static int TIMEOUT = 5000;
     // esses callbacks possibilitam o reuso desse codigo, não dependendo daquela interface de ususario
     public Runnable onLoginOK;
@@ -105,9 +106,9 @@ public class ClienteSocket implements Runnable {
     
     private String formatarMsgAnuncio(Mensagem msg, boolean entrando) {
         if (entrando) {
-            return msg.remetente + " acabou de entrar.";
+            return msg.conteudo + " acabou de entrar.";
         } else {
-            return msg.remetente + " acabou de sair.";
+            return msg.conteudo + " acabou de sair.";
         }
     }
     
@@ -130,13 +131,10 @@ public class ClienteSocket implements Runnable {
         }
     }
     
-    private void tentarOnListaUsuarios() {
-        try {
-            onListaUsuarios.run();
-            
-        } catch (NullPointerException ex) {
-            LOGGER.info("evento onListaUsuarios não definido");
-        }
+    // gambiarra, eu sei. não são várias threads, cada chamada só armazena isso uma vez, porisso não tem problema
+    // mas mesmo assim, se eu pudesse escolheria outra forma, uma mais caprichosa
+    public String ultimoUsuarioEntrado() {
+        return ultimoUsuarioEntrado;
     }
     
     public void logOut() {
@@ -147,12 +145,8 @@ public class ClienteSocket implements Runnable {
         try {
             callback.run();
         } catch (NullPointerException ex) { 
-            LOGGER.log(Level.INFO, "evento {0} não definido", callback.toString());
+            LOGGER.log(Level.INFO, "evento não definido", ex);
         }
-    }
-  
-    private synchronized void lidarListaUsuarios(Mensagem msg) {
-        listaUsuarios.addLast(msg.conteudo);
     }
     
     public void lidarComRespostas(Mensagem msg) {
@@ -172,16 +166,20 @@ public class ClienteSocket implements Runnable {
             case RESP_TRANSFERENCIA:
                 break;
             case ANUNCIAR_LOGIN:
+                ultimoUsuarioEntrado = msg.conteudo;
+                tentarCallback(onUsuarioEntrou);
                 mensagens.addLast(formatarMsgAnuncio(msg, true));
                 tentarCallback(onNovaMensagem);
                 break;
             case LISTA_USUARIOS:
-                lidarListaUsuarios(msg);
+                listaUsuarios.addLast(msg.conteudo);
                 break;
             case FIM_LISTA_USUARIOS:
                 tentarCallback(onListaUsuarios);
                 break;
             case ANUNCIAR_LOGOUT:
+                ultimoUsuarioEntrado = msg.conteudo;
+                tentarCallback(onUsuarioSaiu);
                 mensagens.addLast(formatarMsgAnuncio(msg, false));
                 tentarCallback(onNovaMensagem);
                 break;
