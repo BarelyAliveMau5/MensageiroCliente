@@ -176,6 +176,11 @@ public final class frmChat extends JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Chat - Mensageiro");
         setLocationByPlatform(true);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -401,6 +406,10 @@ public final class frmChat extends JFrame {
     private void txtMensagensMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtMensagensMouseClicked
         lstUsuarios.clearSelection();
     }//GEN-LAST:event_txtMensagensMouseClicked
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        clienteSocket.logOut();
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;
