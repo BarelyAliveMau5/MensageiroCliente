@@ -48,7 +48,6 @@ public final class frmChat extends JFrame {
     public frmChat(JFrame prev, ClienteSocket cliente) {
         this();
         this.clienteSocket = cliente;
-        definirCallbackListaUsuarios();
         definirCallbackNovaMensagem();
         definirCallbackUsuarioEntrou();
         definirCallbackUsuarioSaiu();
@@ -71,21 +70,6 @@ public final class frmChat extends JFrame {
         lblMensagens.setText(String.valueOf(num));
     }
     
-    private void definirCallbackListaUsuarios() {
-        clienteSocket.onListaUsuarios = new Runnable() {
-            @Override
-            public void run() {
-                String item;
-                do {
-                    item = clienteSocket.proxItemListaUsuario();
-                    if (item != null && !item.equals(clienteSocket.usuario()))
-                        model.addElement(item);
-                } while (item != null);
-                setNumeroPessoas(model.size());
-            }
-        };
-    }
-    
     private void definirCallbackNovaMensagem() {
         clienteSocket.onNovaMensagem = new Runnable() {
             @Override
@@ -102,7 +86,7 @@ public final class frmChat extends JFrame {
     }
         
     private void definirCallbackUsuarioEntrou() {
-        clienteSocket.onUsuarioEntrou = new Runnable() {
+        clienteSocket.onUsuarioEntrou = clienteSocket.onListaUsuarios = new Runnable() {
             @Override
             public void run() {
                 model.addElement(clienteSocket.ultimoUsuarioEntrado());
@@ -408,8 +392,10 @@ public final class frmChat extends JFrame {
     }//GEN-LAST:event_btnEnviarActionPerformed
 
     private void txtMensagemKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtMensagemKeyPressed
-        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER)
+        if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
             enviarMensagem(txtMensagem.getText());
+            txtMensagem.setText(""); // não existe metodo clear wtf
+        }
     }//GEN-LAST:event_txtMensagemKeyPressed
 
     private void txtMensagensMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtMensagensMouseClicked

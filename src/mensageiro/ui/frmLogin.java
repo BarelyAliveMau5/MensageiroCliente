@@ -304,8 +304,8 @@ public class frmLogin extends javax.swing.JFrame {
     }
     
     private void definirCallbacks() {
-        definirCallbackLoginOK();
         definirCallbackLoginFalho();
+        definirCallbackLoginOK();
     }
     
     private void login(String usuario, char[] senha) {
@@ -316,8 +316,8 @@ public class frmLogin extends javax.swing.JFrame {
             clienteSocket = new ClienteSocket(serverAddr(), serverPort(), usuario, senha, true);
             definirCallbacks(); 
             clienteSocket.run();
-            lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("accept.png")));
-            lblTesteConexao.setText("Sucesso");
+            //lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("accept.png")));
+            //lblTesteConexao.setText("Sucesso");
             //mostrarChat();
         } catch (IOException ex) {
             lblTesteConexao.setIcon(new ImageIcon(this.getClass().getResource("error.png")));

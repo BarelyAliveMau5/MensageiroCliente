@@ -45,7 +45,6 @@ public class ClienteSocket implements Runnable {
     private final ObjectOutputStream saida;  // saída dos dados vindos da rede
     private boolean executando;              // condição que mantem o loop que verifica os dados recebidos
     private final ArrayDeque<String> mensagens = new ArrayDeque<String>();
-    private final ArrayDeque<String> listaUsuarios = new ArrayDeque<String>();;
     private String ultimoUsuarioEntrado;
     private final static int TIMEOUT = 5000;
     // esses callbacks possibilitam o reuso desse codigo, não dependendo daquela interface de ususario
@@ -117,29 +116,27 @@ public class ClienteSocket implements Runnable {
         return mensagens.poll();
     }
     
-    public String proxItemListaUsuario() {
-        return listaUsuarios.poll();
-    }
-    
     private void lidarComLogin(Mensagem msg) {
         try {
         if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
             onLoginOK.run();
-        if (msg.conteudo.equals(Mensagem.Resp.LOGIN_FALHO))
-            onErroLogin.run(); 
+        if (msg.conteudo.equals(Mensagem.Resp.LOGIN_FALHO)){
+            onErroLogin.run();
+            this.executando = false;
+        }
         } catch (NullPointerException ex) {
-            LOGGER.info("evento onLoginOK não definido");
+            LOGGER.info("eventos onLogin não definidos");
         }
     }
     
-    // gambiarra, eu sei. não são várias threads, cada chamada só armazena isso uma vez, porisso não tem problema
-    // mas mesmo assim, se eu pudesse escolheria outra forma, uma mais caprichosa
+    // gambiarra, eu sei. não são várias threads, cada chamada só armazena isso uma vez, porisso não tem problema.
     public String ultimoUsuarioEntrado() {
         return ultimoUsuarioEntrado;
     }
     
     public void logOut() {
         enviar(new Mensagem(Mensagem.Tipos.LOGOUT, "", "", ""));
+        executando = false;
     }
     
     private void tentarCallback(Runnable callback) {
@@ -173,9 +170,7 @@ public class ClienteSocket implements Runnable {
                 tentarCallback(onNovaMensagem);
                 break;
             case LISTA_USUARIOS:
-                listaUsuarios.addLast(msg.conteudo);
-                break;
-            case FIM_LISTA_USUARIOS:
+                ultimoUsuarioEntrado = msg.conteudo;
                 tentarCallback(onListaUsuarios);
                 break;
             case ANUNCIAR_LOGOUT:
