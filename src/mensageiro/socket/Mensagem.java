@@ -39,7 +39,7 @@ public class Mensagem implements Serializable{
         public static final String LOGIN_ESPERANDO = "";
         public static final String LOGIN_FALHO = FAIL;
         public static final String TRANSFERENCIA_OK = OK;
-        public static final String TRANSFERENCIA_FALHA = FAIL;
+        public static final String TRANSFERENCIA_NEGADA = FAIL;
         public static final String REGISTRAR_OK = OK;
         public static final String REGISTRAR_FALHA = FAIL;
     }
@@ -52,7 +52,6 @@ public class Mensagem implements Serializable{
         RESP_TRANSFERENCIA,
         REGISTRAR_USUARIO,
         LISTA_USUARIOS,
-        FIM_LISTA_USUARIOS,
         ANUNCIAR_LOGIN,
         ANUNCIAR_LOGOUT,
         TESTE,
@@ -70,6 +69,14 @@ public class Mensagem implements Serializable{
         this.remetente = remetente; 
         this.conteudo = conteudo; 
         this.destinatario = destinatario;
+    }
+    
+    public Mensagem(Tipos tipo, String conteudo, String destinatario){
+        this(tipo, "", conteudo, destinatario);
+    }
+    
+    public Mensagem(Tipos tipo, String destinatario){
+        this(tipo, "", "", destinatario);
     }
     
     @Override
