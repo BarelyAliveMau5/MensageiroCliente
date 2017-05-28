@@ -43,14 +43,12 @@ public class Download extends TransferenciaBase {
     private static final String CONCLUIDO = "Downloaad concluido";
     private static final String BAIXANDO = "Baixando..";
 
-    public Download(String salvarEm, boolean autoIniciar) {
+    public Download(String salvarEm) {
         super();
         try {
             server = new ServerSocket(0);
             porta = server.getLocalPort();
             this.salvarEm = salvarEm;
-            if (autoIniciar)
-                iniciar();
         }
         catch (IOException ex) {
             LOGGER.severe(ex.toString());
