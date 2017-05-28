@@ -59,6 +59,7 @@ public class ClienteSocket implements Runnable {
     public Callable onSolicitTransfer;  // igual ao runnable mas com retorno
     public Runnable onDownloadIniciado; // se eu pudesse passar parametros, passaria o tipo de transferencia em 1 var
     public Runnable onUploadIniciado;
+    public Runnable onTransfFinalizada;
     public Runnable onListaUsuarios;
     public Runnable onUsuarioEntrou;
     public Runnable onUsuarioSaiu;
@@ -101,7 +102,10 @@ public class ClienteSocket implements Runnable {
     
     public void upload (String caminhoArquivo, String destinatario) {
         caminhoArquivoUpload = caminhoArquivo;
-        enviar(new Mensagem(Mensagem.Tipos.PEDIDO_TRANSFERENCIA, new File(caminhoArquivo).getName(), destinatario));
+        File arquivo = new File(caminhoArquivo);
+        long tamanho = arquivo.length();
+        String nomeArquivo = arquivo.getName();
+        enviar(new Mensagem(Mensagem.Tipos.PEDIDO_TRANSFERENCIA, tamanho + ";" + nomeArquivo, destinatario));
     }
     
     private void iniciarUpload(Mensagem msg) {
@@ -119,7 +123,10 @@ public class ClienteSocket implements Runnable {
     private void responderPedidoTransf(boolean aceitar, Mensagem msg) {
         String resp;
         if (aceitar) {
-            download = new Download(new File("./" + msg.conteudo).getAbsoluteFile().toString());
+            String arquivo = new File("./" + msg.conteudo.split(";")[1]).getAbsoluteFile().toString();
+            int tamanho = Integer.parseInt(msg.conteudo.split(";")[0]);
+            download = new Download(arquivo, tamanho);
+            //download = new Download(new File("/dev/null").getAbsoluteFile().toString());
             resp = String.valueOf(download.porta());
             onDownloadIniciado.run();
             download.iniciar();
@@ -127,6 +134,68 @@ public class ClienteSocket implements Runnable {
             resp = Mensagem.Resp.TRANSFERENCIA_NEGADA;
         } 
         enviar(new Mensagem(Mensagem.Tipos.RESP_TRANSFERENCIA, resp, msg.remetente));
+    }
+    
+    private void tentarRespTransferencia(Mensagem msg) {
+        try {
+            responderPedidoTransf((Boolean) onSolicitTransfer.call(), msg);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "erro respondendo pedido de transferencia {0}", ex.getMessage());
+        }
+    }
+   // gambiarra monstra #1
+    public int porcentagemTransferencia() {
+        try {
+            if (download.executando()) 
+                return download.porcento_concluido();
+        } catch (NullPointerException ex) { }
+        try {
+            if (upload.executando()) 
+                return upload.porcento_concluido();
+        } catch (NullPointerException ex) { }
+        
+        LOGGER.warning("chamando porcentagem de transferencia sem existir uma ativa");
+        return 0;
+    }
+    
+    // gambiarra monstra #2
+    public String progressoTransferencia() {
+        try {
+            if (download.executando()) 
+                return download.progresso();
+        } catch (NullPointerException ex) { }
+        try {
+            if (upload.executando()) 
+                return upload.progresso();
+        } catch (NullPointerException ex) { }
+        LOGGER.warning("chamando status de transferencia sem existir uma ativa");
+        return "";
+    }
+    
+    //gambiarra monstra #3
+    public void pararTransferencia() {
+        try {
+            if (download.executando()) {
+                download.cancelar();
+                LOGGER.info("download cancelado");
+            }
+        } catch (NullPointerException ex) { }
+        try {
+            if (upload.executando()) {
+                upload.cancelar();
+                LOGGER.info("upload cancelado");
+            }
+        } catch (NullPointerException ex) { }
+    }
+    
+    // gambiarra monstra #4
+    public boolean transferenciaAtiva() {
+        if (download != null)
+            return download.executando();
+        else if (upload != null)
+            return upload.executando();
+        else
+            return false;
     }
     
     private String formatarMsg(Mensagem msg) {
@@ -187,14 +256,6 @@ public class ClienteSocket implements Runnable {
         }
     }
     
-    private void tentarRespTransferencia(Mensagem msg) {
-        try {
-            responderPedidoTransf((Boolean) onSolicitTransfer.call(), msg);
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "erro respondendo pedido de transferencia {0}", ex.getMessage());
-        }
-    }
-  
     public void lidarComRespostas(Mensagem msg) {
         if (msg == null)
             return;
@@ -258,7 +319,7 @@ public class ClienteSocket implements Runnable {
         }
     }
     
-    public final synchronized void enviar(Mensagem msg){
+    public final void enviar(Mensagem msg){
         try {
             saida.writeObject(msg);
             saida.flush();
