@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -48,9 +49,9 @@ public class Upload extends TransferenciaBase {
         try {
             this.arquivo = arquivo;
             socket = new Socket(InetAddress.getByName(addr), port);
-            this.saida = socket.getOutputStream();
-            this.entrada = new FileInputStream(arquivo);
-            this.tamanhoArquivo = (int) this.entrada.getChannel().size();
+            saida = socket.getOutputStream();
+            entrada = new FileInputStream(arquivo);
+            tamanhoArquivo = (int) entrada.getChannel().size();
         } 
         catch (IOException ex) {
             LOGGER.severe(ex.toString());
@@ -58,17 +59,17 @@ public class Upload extends TransferenciaBase {
     }
         
     public String arquivo() {
-        return this.arquivo.getAbsolutePath();
+        return arquivo.getAbsolutePath();
     }
     
     private void finalizar() {
         try {
-            if(this.saida != null)
-                this.saida.close();
-            if(this.entrada != null)
-                this.entrada.close();
-            if(this.socket != null)
-                this.socket.close();
+            if(saida != null)
+                saida.close();
+            if(entrada != null)
+                entrada.close();
+            if(socket != null)
+                socket.close();
         } catch (IOException ex) {
             LOGGER.warning(ex.toString());
         }
@@ -77,27 +78,28 @@ public class Upload extends TransferenciaBase {
     @Override
     public void run() {
         try {       
-            byte[] buffer = new byte[this.tamanhoBuffer];
+            executando = true;
+            byte[] buffer = new byte[tamanhoBuffer];
             int count;
-            this.status = Upload.SUBINDO;
-            while((count = this.entrada.read(buffer)) >= 0){
-                this.saida.write(buffer, 0, count);
-                this.bytesTransferidos += count;
-                if (!this.executando) {
-                    this.cancelar();
-                    this.saida.flush();
+            status = Upload.SUBINDO;
+            while((count = entrada.read(buffer)) >= 0){
+                bytesTransferidos += count;
+                saida.write(buffer, 0, count);
+                if (!executando) {
+                    cancelar();
+                    saida.flush();
                     return;
                 }
             }
-            this.saida.flush();
+            saida.flush();
             
-            this.status = Upload.CONCLUIDO;
+            status = Upload.CONCLUIDO;
             
-            this.finalizar();
+            finalizar();
         }
         catch (IOException ex) {
-            this.status = Upload.INTERROMPIDO;
+            status = Upload.INTERROMPIDO;
             LOGGER.severe(ex.toString());
-        }
+        } 
     }
 }

@@ -64,6 +64,14 @@ public abstract class TransferenciaBase implements Runnable {
                 + " kB [" + String.valueOf(bytesTransferidos / tamanhoArquivo * 100) + "%]";
     }
     
+    public int porcento_concluido() {
+        return (int) (((double) bytesTransferidos) / tamanhoArquivo) * 100;
+    }
+    
+    public boolean executando() {
+        return executando;
+    }
+    
     public void cancelar() {
         if (executando) {
             executando = false;

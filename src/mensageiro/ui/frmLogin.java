@@ -274,7 +274,7 @@ public class frmLogin extends javax.swing.JFrame {
         txtServidor.setEnabled(estado);
         txtUsuario.setEnabled(estado);
     }
-    
+
     private void mostrarChat() {
         frmChat chat = new frmChat(this, clienteSocket);
         chat.setVisible(true);

@@ -43,12 +43,13 @@ public class Download extends TransferenciaBase {
     private static final String CONCLUIDO = "Downloaad concluido";
     private static final String BAIXANDO = "Baixando..";
 
-    public Download(String salvarEm) {
+    public Download(String salvarEm, int tamanho) {
         super();
         try {
             server = new ServerSocket(0);
             porta = server.getLocalPort();
             this.salvarEm = salvarEm;
+            this.tamanhoArquivo = tamanho;
         }
         catch (IOException ex) {
             LOGGER.severe(ex.toString());
@@ -86,8 +87,8 @@ public class Download extends TransferenciaBase {
             
             int count;
             while((count = entrada.read(buffer)) >= 0){
-                saida.write(buffer, 0, count);
                 bytesTransferidos += count;
+                saida.write(buffer, 0, count);
                 if (!executando) {
                     cancelar();
                     saida.flush();

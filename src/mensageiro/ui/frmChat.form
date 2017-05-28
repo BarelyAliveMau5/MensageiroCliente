@@ -250,7 +250,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="lbl_transferindo" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblTransferindo" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="pbProgresso" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
@@ -274,7 +274,7 @@
                           </Group>
                           <EmptySpace min="0" pref="6" max="32767" attributes="0"/>
                       </Group>
-                      <Component id="lbl_transferindo" max="32767" attributes="0"/>
+                      <Component id="lblTransferindo" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -282,7 +282,7 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="lbl_transferindo">
+        <Component class="javax.swing.JLabel" name="lblTransferindo">
           <Properties>
             <Property name="text" type="java.lang.String" value="Transferindo:"/>
           </Properties>
@@ -293,6 +293,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Parar"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPararTransfActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="lblProgresso">
           <Properties>

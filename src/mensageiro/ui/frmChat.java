@@ -23,7 +23,11 @@
  */
 package mensageiro.ui;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -122,24 +126,48 @@ public final class frmChat extends JFrame {
         };
     }
     
+    private void atualizarProgressoTransferencia() {
+        pbProgresso.setValue(clienteSocket.porcentagemTransferencia());
+        lblProgresso.setText(clienteSocket.progressoTransferencia());
+    }
+
+    private void iniciarAtualizador() {
+        final Timer timer = new Timer();
+
+        timer.schedule( new TimerTask() {
+            @Override
+            public void run() {
+               atualizarProgressoTransferencia();
+               if (!clienteSocket.transferenciaAtiva()) {
+                   panelTransferencia.setVisible(true);
+                   timer.cancel();
+               }
+            }
+         }, 0, 100);
+    }
+    
     private void definirCallbackDownloadIniciado() {
         clienteSocket.onDownloadIniciado = new Runnable() {
             @Override
             public void run() {
-                
+                panelTransferencia.setVisible(true);
+                lblTransferindo.setText("Fazendo download:");
+                iniciarAtualizador();
             }
         };
     }
-       
+
     private void definirCallbackUploadIniciado() {
         clienteSocket.onUploadIniciado = new Runnable() {
             @Override
             public void run() {
-                
+                panelTransferencia.setVisible(true);
+                lblTransferindo.setText("Fazendo upload:");
+                iniciarAtualizador();
             }
         };
     }
-               
+
     private void definirCallbackSolicitTransfer() {
         clienteSocket.onSolicitTransfer = new Callable() {
             @Override
@@ -200,7 +228,7 @@ public final class frmChat extends JFrame {
         btnEnviar = new javax.swing.JButton();
         lblNome = new javax.swing.JLabel();
         panelTransferencia = new javax.swing.JPanel();
-        lbl_transferindo = new javax.swing.JLabel();
+        lblTransferindo = new javax.swing.JLabel();
         pbProgresso = new javax.swing.JProgressBar();
         btnPararTransf = new javax.swing.JButton();
         lblProgresso = new javax.swing.JLabel();
@@ -363,9 +391,14 @@ public final class frmChat extends JFrame {
 
         panelTransferencia.setPreferredSize(new java.awt.Dimension(100, 49));
 
-        lbl_transferindo.setText("Transferindo:");
+        lblTransferindo.setText("Transferindo:");
 
         btnPararTransf.setText("Parar");
+        btnPararTransf.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPararTransfActionPerformed(evt);
+            }
+        });
 
         lblProgresso.setText("0/0 kb [0%]");
 
@@ -375,7 +408,7 @@ public final class frmChat extends JFrame {
             panelTransferenciaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelTransferenciaLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(lbl_transferindo)
+                .addComponent(lblTransferindo)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pbProgresso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -395,7 +428,7 @@ public final class frmChat extends JFrame {
                             .addComponent(btnPararTransf, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblProgresso, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(0, 6, Short.MAX_VALUE))
-                    .addComponent(lbl_transferindo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lblTransferindo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -460,6 +493,11 @@ public final class frmChat extends JFrame {
         }
     }//GEN-LAST:event_btnTransferirActionPerformed
 
+    private void btnPararTransfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPararTransfActionPerformed
+        clienteSocket.pararTransferencia();
+        panelTransferencia.setVisible(false);
+    }//GEN-LAST:event_btnPararTransfActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;
     private javax.swing.JButton btnLimpar;
@@ -475,9 +513,9 @@ public final class frmChat extends JFrame {
     private javax.swing.JLabel lblNome;
     private javax.swing.JLabel lblPessoas;
     private javax.swing.JLabel lblProgresso;
+    private javax.swing.JLabel lblTransferindo;
     private javax.swing.JLabel lbl_mensagens;
     private javax.swing.JLabel lbl_pessoas;
-    private javax.swing.JLabel lbl_transferindo;
     public javax.swing.JList lstUsuarios;
     private javax.swing.JPanel panelTransferencia;
     private javax.swing.JProgressBar pbProgresso;
