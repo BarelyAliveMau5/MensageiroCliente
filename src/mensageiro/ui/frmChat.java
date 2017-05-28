@@ -23,7 +23,9 @@
  */
 package mensageiro.ui;
 
+import java.util.concurrent.Callable;
 import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import mensageiro.socket.ClienteSocket;
@@ -52,6 +54,9 @@ public final class frmChat extends JFrame {
         definirCallbackUsuarioEntrou();
         definirCallbackUsuarioSaiu();
         definirCallbackErroConexao();
+        definirCallbackSolicitTransfer();
+        definirCallbackDownloadIniciado();
+        definirCallbackUploadIniciado();
         lblNome.setText(clienteSocket.usuario() + ":");
         setJanelaAnterior(prev);
     }
@@ -70,6 +75,7 @@ public final class frmChat extends JFrame {
         lblMensagens.setText(String.valueOf(num));
     }
     
+    // <editor-fold defaultstate="collapsed" desc="Callbacks">   
     private void definirCallbackNovaMensagem() {
         clienteSocket.onNovaMensagem = new Runnable() {
             @Override
@@ -95,7 +101,6 @@ public final class frmChat extends JFrame {
         };
     }
     
-           
     private void definirCallbackUsuarioSaiu() {
         clienteSocket.onUsuarioSaiu = new Runnable() {
             @Override
@@ -106,7 +111,6 @@ public final class frmChat extends JFrame {
         };
     }
     
-               
     private void definirCallbackErroConexao() {
         clienteSocket.onErroConexao = new Runnable() {
             @Override
@@ -118,6 +122,34 @@ public final class frmChat extends JFrame {
         };
     }
     
+    private void definirCallbackDownloadIniciado() {
+        clienteSocket.onDownloadIniciado = new Runnable() {
+            @Override
+            public void run() {
+                
+            }
+        };
+    }
+       
+    private void definirCallbackUploadIniciado() {
+        clienteSocket.onUploadIniciado = new Runnable() {
+            @Override
+            public void run() {
+                
+            }
+        };
+    }
+               
+    private void definirCallbackSolicitTransfer() {
+        clienteSocket.onSolicitTransfer = new Callable() {
+            @Override
+            public Object call() throws Exception {
+                return (Boolean) (JOptionPane.showConfirmDialog(null, "aceitar arquivo?", "", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+            }
+        };
+    }
+// </editor-fold>        
+    
     private void enviarMensagem(String msg) {
         String destinatario;
         // não permitir envio de mensagem privada a si mesmo
@@ -127,7 +159,7 @@ public final class frmChat extends JFrame {
         else
             // outra gambiarra, isso só é enviado, não recebido, porisso tenho que adicionar manualmente a msg
             if (!destinatario.equals(""))
-                txtMensagens.append(clienteSocket.usuario() + ">" + destinatario + ": "+ msg + "\n"); 
+                txtMensagens.append(clienteSocket.usuario() + " > " + destinatario + ": "+ msg + "\n"); 
         clienteSocket.enviar(new Mensagem(Mensagem.Tipos.MENSAGEM, clienteSocket.usuario(), msg, destinatario));
     }
     
@@ -228,7 +260,12 @@ public final class frmChat extends JFrame {
         gridBagConstraints.insets = new java.awt.Insets(6, 12, 6, 6);
         jPanel1.add(lblMensagens, gridBagConstraints);
 
-        btnTransferir.setText("Transferir arquivo");
+        btnTransferir.setText("Enviar arquivo");
+        btnTransferir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTransferirActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 0, 6);
         jPanel1.add(btnTransferir, gridBagConstraints);
@@ -410,6 +447,18 @@ public final class frmChat extends JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         clienteSocket.logOut();
     }//GEN-LAST:event_formWindowClosing
+
+    private void btnTransferirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferirActionPerformed
+        String destinatario= lstUsuarios.getSelectedValue() != null ? lstUsuarios.getSelectedValue().toString() : null;
+        if (destinatario != null && !destinatario.equals(clienteSocket.usuario())) {
+            JFileChooser fc = new JFileChooser();
+            int returnVal = fc.showOpenDialog(this);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                clienteSocket.upload(fc.getSelectedFile().getAbsolutePath(), destinatario); 
+            }
+        }
+    }//GEN-LAST:event_btnTransferirActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;

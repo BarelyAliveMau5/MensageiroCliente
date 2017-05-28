@@ -48,7 +48,7 @@ public class Mensagem implements Serializable{
         MENSAGEM,
         LOGIN,
         LOGOUT,
-        PEDIR_TRANSFERENCIA,
+        PEDIDO_TRANSFERENCIA,
         RESP_TRANSFERENCIA,
         REGISTRAR_USUARIO,
         LISTA_USUARIOS,

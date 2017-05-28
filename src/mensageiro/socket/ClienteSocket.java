@@ -24,34 +24,41 @@
  */
 package mensageiro.socket;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayDeque;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import mensageiro.transferencia.Download;
+import mensageiro.transferencia.Upload;
 /**
  * @author BarelyAliveMau5
  */
 public class ClienteSocket implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClienteSocket.class.getName());
     private final String usuario;            // nome do usuario atual
-    private final int porta;                 // porta do server
-    private final String serverAddr;         // endereço do server
     private final Socket socket;
     private final ObjectInputStream entrada; // entrada dos dados vindos da rede
     private final ObjectOutputStream saida;  // saída dos dados vindos da rede
     private boolean executando;              // condição que mantem o loop que verifica os dados recebidos
     private final ArrayDeque<String> mensagens = new ArrayDeque<String>();
     private String ultimoUsuarioEntrado;
+    private Upload upload;
+    private String caminhoArquivoUpload;
+    private Download download;
     private final static int TIMEOUT = 5000;
-    // esses callbacks possibilitam o reuso desse codigo, não dependendo daquela interface de ususario
+    // callbacks independentes de interface
     public Runnable onLoginOK;
     public Runnable onErroLogin;
     public Runnable onNovaMensagem;
-    public Runnable onSolicitTransfer;
+    public Callable onSolicitTransfer;  // igual ao runnable mas com retorno
+    public Runnable onDownloadIniciado; // se eu pudesse passar parametros, passaria o tipo de transferencia em 1 var
+    public Runnable onUploadIniciado;
     public Runnable onListaUsuarios;
     public Runnable onUsuarioEntrou;
     public Runnable onUsuarioSaiu;
@@ -67,8 +74,6 @@ public class ClienteSocket implements Runnable {
      */
     public ClienteSocket(String addr,int porta, String usuario, char[] senha, boolean login) throws IOException {
         this.usuario = usuario;
-        serverAddr = addr;
-        this.porta = porta;
         socket = new Socket();
         socket.connect(new InetSocketAddress(addr, porta), TIMEOUT);
         saida = new ObjectOutputStream(socket.getOutputStream());
@@ -87,11 +92,41 @@ public class ClienteSocket implements Runnable {
         if (senha != null)
             enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, String.valueOf(senha), ""));
         else
-            enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, "", ""));
+            enviar(new Mensagem(Mensagem.Tipos.LOGIN, usuario, "", "")); // vazio = servidor
     }
     
     public String usuario(){
         return usuario;
+    }
+    
+    public void upload (String caminhoArquivo, String destinatario) {
+        caminhoArquivoUpload = caminhoArquivo;
+        enviar(new Mensagem(Mensagem.Tipos.PEDIDO_TRANSFERENCIA, new File(caminhoArquivo).getName(), destinatario));
+    }
+    
+    private void iniciarUpload(Mensagem msg) {
+        try {
+            String addr = msg.conteudo.split(":")[0];
+            int porta = Integer.parseInt(msg.conteudo.split(":")[1]);
+            upload = new Upload(addr, porta, new File(caminhoArquivoUpload));
+            onUploadIniciado.run();
+            upload.iniciar();
+        } catch (NumberFormatException ex) {
+            LOGGER.log(Level.WARNING, "erro ao iniciar upload {0}", ex.toString());
+        }
+    }
+    
+    private void responderPedidoTransf(boolean aceitar, Mensagem msg) {
+        String resp;
+        if (aceitar) {
+            download = new Download(new File("./" + msg.conteudo).getAbsoluteFile().toString());
+            resp = String.valueOf(download.porta());
+            onDownloadIniciado.run();
+            download.iniciar();
+        } else {
+            resp = Mensagem.Resp.TRANSFERENCIA_NEGADA;
+        } 
+        enviar(new Mensagem(Mensagem.Tipos.RESP_TRANSFERENCIA, resp, msg.remetente));
     }
     
     private String formatarMsg(Mensagem msg) {
@@ -116,6 +151,11 @@ public class ClienteSocket implements Runnable {
         return mensagens.poll();
     }
     
+    private void novaMensagem(String msg) {
+        mensagens.addLast(msg);
+        tentarCallback(onNovaMensagem);
+    }
+    
     private void lidarComLogin(Mensagem msg) {
         try {
         if (msg.conteudo.equals(Mensagem.Resp.LOGIN_OK))
@@ -135,7 +175,7 @@ public class ClienteSocket implements Runnable {
     }
     
     public void logOut() {
-        enviar(new Mensagem(Mensagem.Tipos.LOGOUT, "", "", ""));
+        enviar(new Mensagem(Mensagem.Tipos.LOGOUT, ""));
         executando = false;
     }
     
@@ -147,27 +187,37 @@ public class ClienteSocket implements Runnable {
         }
     }
     
+    private void tentarRespTransferencia(Mensagem msg) {
+        try {
+            responderPedidoTransf((Boolean) onSolicitTransfer.call(), msg);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "erro respondendo pedido de transferencia {0}", ex.getMessage());
+        }
+    }
+  
     public void lidarComRespostas(Mensagem msg) {
         if (msg == null)
             return;
         switch (msg.tipo()) {
             case MENSAGEM:
-                mensagens.addLast(formatarMsg(msg));
-                tentarCallback(onNovaMensagem);
+                novaMensagem(formatarMsg(msg));
                 break;
             case LOGIN:
                 lidarComLogin(msg);
                 break;
-            case PEDIR_TRANSFERENCIA:
-                tentarCallback(onSolicitTransfer);
+            case PEDIDO_TRANSFERENCIA:
+                tentarRespTransferencia(msg);
                 break;
             case RESP_TRANSFERENCIA:
+                if (!msg.conteudo.equals(Mensagem.Resp.TRANSFERENCIA_NEGADA))
+                    iniciarUpload(msg);
+                else
+                    novaMensagem("transferência recusada");
                 break;
             case ANUNCIAR_LOGIN:
                 ultimoUsuarioEntrado = msg.conteudo;
                 tentarCallback(onUsuarioEntrou);
-                mensagens.addLast(formatarMsgAnuncio(msg, true));
-                tentarCallback(onNovaMensagem);
+                novaMensagem(formatarMsgAnuncio(msg, true));
                 break;
             case LISTA_USUARIOS:
                 ultimoUsuarioEntrado = msg.conteudo;
@@ -176,8 +226,7 @@ public class ClienteSocket implements Runnable {
             case ANUNCIAR_LOGOUT:
                 ultimoUsuarioEntrado = msg.conteudo;
                 tentarCallback(onUsuarioSaiu);
-                mensagens.addLast(formatarMsgAnuncio(msg, false));
-                tentarCallback(onNovaMensagem);
+                novaMensagem(formatarMsgAnuncio(msg, false));
                 break;
             case REGISTRAR_USUARIO:
             case TESTE:
@@ -211,7 +260,6 @@ public class ClienteSocket implements Runnable {
     
     public final synchronized void enviar(Mensagem msg){
         try {
-            System.out.print(msg);
             saida.writeObject(msg);
             saida.flush();
             LOGGER.log(Level.FINE, "Enviado: {0}", msg.toString());

@@ -307,7 +307,7 @@ public class frmLogin extends javax.swing.JFrame {
         definirCallbackLoginFalho();
         definirCallbackLoginOK();
     }
-    
+
     private void login(String usuario, char[] senha) {
         try {
             lblTesteConexao.setVisible(true);
