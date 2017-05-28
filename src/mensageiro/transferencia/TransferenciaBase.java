@@ -68,7 +68,7 @@ public abstract class TransferenciaBase implements Runnable {
         if (executando) {
             executando = false;
         } else {
-            LOGGER.warning("Tentativa de cancelar transferencia não iniciado");
+            LOGGER.warning("Tentativa de cancelar transferencia não iniciada");
         }
         status = TransferenciaBase.CANCELADO;
     }
@@ -78,7 +78,7 @@ public abstract class TransferenciaBase implements Runnable {
             Thread exec = new Thread(this);
             exec.start();
         } else {
-            LOGGER.warning("Aviso: Tentativa de iniciação de transferencia já iniciado");
+            LOGGER.warning("Tentativa de iniciação de transferencia já iniciada");
         }
     }
 }
