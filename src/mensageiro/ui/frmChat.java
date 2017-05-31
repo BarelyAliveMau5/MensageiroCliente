@@ -309,6 +309,11 @@ public final class frmChat extends JFrame {
         jPanel1.add(btnLogout, gridBagConstraints);
 
         btnLimpar.setText("Limpar");
+        btnLimpar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimparActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.insets = new java.awt.Insets(6, 6, 0, 6);
         jPanel1.add(btnLimpar, gridBagConstraints);
@@ -464,6 +469,7 @@ public final class frmChat extends JFrame {
 
     private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
         enviarMensagem(txtMensagem.getText());
+        txtMensagem.setText(""); // não existe metodo clear wtf
     }//GEN-LAST:event_btnEnviarActionPerformed
 
     private void txtMensagemKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtMensagemKeyPressed
@@ -497,6 +503,10 @@ public final class frmChat extends JFrame {
         clienteSocket.pararTransferencia();
         panelTransferencia.setVisible(false);
     }//GEN-LAST:event_btnPararTransfActionPerformed
+
+    private void btnLimparActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimparActionPerformed
+        txtMensagens.setText("");
+    }//GEN-LAST:event_btnLimparActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;
